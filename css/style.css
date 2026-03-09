@@ -316,6 +316,14 @@ input[type="number"] {
     padding: 10px 12px;
 }
 
+.modal-form input[type="text"],
+.modal-form input[type="number"] {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
 .feedback {
     margin: 12px 0 0;
     color: #7dd3fc;
@@ -326,6 +334,74 @@ input[type="number"] {
     color: var(--muted);
     text-align: center;
     padding: 18px;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 9, 16, 0.72);
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    z-index: 9500;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-card {
+    width: min(560px, 96vw);
+    background: #161d2c;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.45);
+    padding: 18px;
+    transform: translateY(10px) scale(0.98);
+    transition: transform 0.25s ease;
+}
+
+.modal-overlay.show .modal-card {
+    transform: translateY(0) scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.icon-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.modal-form {
+    display: grid;
+    gap: 10px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
 }
 
 .toast-container {
@@ -420,5 +496,19 @@ input[type="number"] {
 
     .main {
         padding: 18px;
+    }
+
+    .modal-card {
+        width: 100%;
+        padding: 14px;
+    }
+
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .modal-actions .btn {
+        width: 100%;
+        justify-content: center;
     }
 }
