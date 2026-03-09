@@ -1,6 +1,10 @@
 const STORAGE_PRODUCTOS = "ferreteria_productos_v2";
 const STORAGE_VENTAS = "ferreteria_ventas_v2";
 const LIMITE_STOCK_BAJO = 10;
+const TOAST_DURATION_MS = 4000;
+const TOAST_COOLDOWN_MS = 12000;
+// Evita spam de la misma alerta para el mismo producto en un corto periodo.
+const ultimaNotificacionPorProducto = new Map();
 
 const productosIniciales = [
     { id: 1, nombre: "Martillo de acero", precio: 12500, stock: 22 },
@@ -29,6 +33,7 @@ window.InventoryApp = {
     registrarVenta,
     obtenerResumenHoy,
     enviarAlertaStock,
+    mostrarNotificacionStock,
     formatoMoneda,
     formatoFechaHora
 };
@@ -87,6 +92,9 @@ function actualizarProducto(productoActualizado) {
         return productoActualizado;
     });
     guardarProductos(productos);
+    if (productoActualizado.stock <= LIMITE_STOCK_BAJO) {
+        mostrarNotificacionStock(productoActualizado);
+    }
 }
 
 function eliminarProducto(id) {
@@ -107,6 +115,9 @@ function crearProducto(data) {
 
     productos.push(nuevo);
     guardarProductos(productos);
+    if (nuevo.stock <= LIMITE_STOCK_BAJO) {
+        mostrarNotificacionStock(nuevo);
+    }
     return nuevo;
 }
 
@@ -166,6 +177,53 @@ function obtenerResumenHoy() {
 function enviarAlertaStock(producto) {
     const mensaje = `[SIMULACION EMAIL] Alerta: ${producto.nombre} tiene stock bajo (${producto.stock} unidades).`;
     console.warn(mensaje);
+    mostrarNotificacionStock(producto);
+}
+
+function mostrarNotificacionStock(producto) {
+    if (!producto || producto.stock > LIMITE_STOCK_BAJO) return;
+
+    const ahora = Date.now();
+    const ultima = ultimaNotificacionPorProducto.get(producto.id) || 0;
+    if (ahora - ultima < TOAST_COOLDOWN_MS) return;
+    ultimaNotificacionPorProducto.set(producto.id, ahora);
+
+    const container = getToastContainer();
+    const toast = document.createElement("article");
+    toast.className = "toast";
+    toast.setAttribute("role", "status");
+    toast.innerHTML = `
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <p>⚠ Stock bajo: ${escapeHtml(producto.nombre)} (${producto.stock} unidades)</p>
+    `;
+
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.add("show");
+    });
+
+    // Cierra automaticamente el toast con animacion de salida.
+    setTimeout(() => {
+        toast.classList.remove("show");
+        toast.classList.add("hide");
+        setTimeout(() => {
+            toast.remove();
+        }, 350);
+    }, TOAST_DURATION_MS);
+}
+
+function getToastContainer() {
+    let container = document.querySelector("#toastContainer");
+    if (container) return container;
+
+    container = document.createElement("div");
+    container.id = "toastContainer";
+    container.className = "toast-container";
+    container.setAttribute("aria-live", "polite");
+    container.setAttribute("aria-atomic", "true");
+    document.body.appendChild(container);
+    return container;
 }
 
 function iniciarDashboardSiExiste() {
