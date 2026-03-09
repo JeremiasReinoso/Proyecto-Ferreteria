@@ -158,6 +158,8 @@ function registrarVenta(productoId, cantidad) {
     ventas.unshift(venta);
     guardarProductos(productos);
     guardarVentas(ventas);
+    // Permite refrescar modulos abiertos en la misma pestana.
+    window.dispatchEvent(new CustomEvent("ventasActualizadas", { detail: venta }));
     return venta;
 }
 
