@@ -8,37 +8,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
     <main class="app">
         <section class="hero">
             <h1>Panel de Inventario</h1>
-            <p>Visualiza stock, registra ventas y recibe alertas por correo cuando haya bajo inventario.</p>
-        </section>
-
-        <section class="settings">
-            <h2>Configuracion de correo</h2>
-            <p class="hint">Configura EmailJS para enviar notificaciones automaticas.</p>
-            <div class="settings-grid">
-                <label>
-                    Public Key
-                    <input id="publicKey" type="text" placeholder="Tu Public Key de EmailJS">
-                </label>
-                <label>
-                    Service ID
-                    <input id="serviceId" type="text" placeholder="Tu Service ID">
-                </label>
-                <label>
-                    Template ID
-                    <input id="templateId" type="text" placeholder="Tu Template ID">
-                </label>
-                <label>
-                    Correo destino
-                    <input id="targetEmail" type="email" placeholder="stock@tudominio.com">
-                </label>
-            </div>
-            <button id="saveConfigBtn" class="btn">Guardar configuracion</button>
+            <p>Visualiza stock, registra ventas y gestiona inventario centralizado con base de datos.</p>
+            <p id="backendStatus" class="hint"></p>
         </section>
 
         <section class="toolbar">
