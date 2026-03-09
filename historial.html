@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de venta | Ferreteria El Vecino</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/historial.css">
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-toolbox"></i>
+                <span>Ferreteria El Vecino</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="inventario.html"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
+                <a href="ventas.html"><i class="fa-solid fa-cash-register"></i> Ventas</a>
+                <a class="active" href="historial.html"><i class="fa-solid fa-clock-rotate-left"></i> Historial de venta</a>
+            </nav>
+        </aside>
+
+        <main class="main">
+            <header class="topbar">
+                <h1>Historial de venta</h1>
+                <p id="fechaActual"></p>
+            </header>
+
+            <section class="card history-filters">
+                <label>
+                    Mes
+                    <select id="mesSelect"></select>
+                </label>
+                <label>
+                    Anio
+                    <select id="anioSelect"></select>
+                </label>
+            </section>
+
+            <section class="cards-grid compact">
+                <article class="card kpi">
+                    <p>Total vendido este mes</p>
+                    <h2 id="totalMesCard">$0</h2>
+                </article>
+                <article class="card kpi">
+                    <p>Cantidad total de ventas</p>
+                    <h2 id="cantidadVentasCard">0</h2>
+                </article>
+                <article class="card kpi">
+                    <p>Producto mas vendido</p>
+                    <h2 id="productoTopCard">-</h2>
+                </article>
+            </section>
+
+            <section class="card">
+                <div class="section-title">
+                    <h3>Ventas por dia</h3>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="ventasChart" aria-label="Grafico de ventas por dia"></canvas>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="section-title">
+                    <h3>Detalle mensual</h3>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio unitario</th>
+                                <th>Total</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historialBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/historial.js"></script>
+</body>
+</html>
