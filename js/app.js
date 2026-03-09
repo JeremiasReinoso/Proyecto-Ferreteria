@@ -61,7 +61,8 @@ function cargarVentas() {
     const raw = localStorage.getItem(STORAGE_VENTAS);
     try {
         const list = JSON.parse(raw);
-        return Array.isArray(list) ? list : [];
+        if (!Array.isArray(list)) return [];
+        return list.map(normalizarVenta).filter(Boolean);
     } catch {
         return [];
     }
@@ -148,11 +149,9 @@ function registrarVenta(productoId, cantidad) {
 
     const venta = {
         id: Date.now(),
-        productoId: producto.id,
-        nombreProducto: producto.nombre,
+        producto: producto.nombre,
         cantidad,
-        precioUnitario: producto.precio,
-        total: producto.precio * cantidad,
+        precio: producto.precio,
         fecha: new Date().toISOString()
     };
 
@@ -169,7 +168,7 @@ function obtenerResumenHoy() {
 
     const ventasHoy = ventas.filter((venta) => venta.fecha.slice(0, 10) === hoy);
     const ventasDelDia = ventasHoy.reduce((acc, venta) => acc + venta.cantidad, 0);
-    const ingresosDelDia = ventasHoy.reduce((acc, venta) => acc + venta.total, 0);
+    const ingresosDelDia = ventasHoy.reduce((acc, venta) => acc + venta.precio * venta.cantidad, 0);
     const stockBajo = productos.filter((item) => item.stock <= LIMITE_STOCK_BAJO).length;
 
     return {
@@ -280,6 +279,26 @@ function formatoFechaHora(fechaIso) {
         hour: "2-digit",
         minute: "2-digit"
     }).format(new Date(fechaIso));
+}
+
+function normalizarVenta(venta) {
+    if (!venta || typeof venta !== "object") return null;
+
+    const producto = String(venta.producto || venta.nombreProducto || "").trim();
+    const cantidad = Number(venta.cantidad);
+    const precio = Number(venta.precio ?? venta.precioUnitario);
+    const fecha = String(venta.fecha || new Date().toISOString());
+    const id = Number(venta.id || Date.now());
+
+    if (!producto || !Number.isFinite(cantidad) || !Number.isFinite(precio)) return null;
+
+    return {
+        id,
+        producto,
+        cantidad,
+        precio,
+        fecha
+    };
 }
 
 function setFechaActual() {
