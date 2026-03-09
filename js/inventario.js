@@ -2,6 +2,19 @@ const inventarioBody = document.querySelector("#inventarioBody");
 const searchInput = document.querySelector("#searchInput");
 const btnNuevo = document.querySelector("#btnNuevo");
 
+const productModal = document.querySelector("#productModal");
+const closeModalBtn = document.querySelector("#closeModalBtn");
+const cancelModalBtn = document.querySelector("#cancelModalBtn");
+const productForm = document.querySelector("#productForm");
+const modalTitle = document.querySelector("#modalTitle");
+
+const modalProductId = document.querySelector("#modalProductId");
+const modalNombre = document.querySelector("#modalNombre");
+const modalCategoria = document.querySelector("#modalCategoria");
+const modalPrecio = document.querySelector("#modalPrecio");
+const modalStock = document.querySelector("#modalStock");
+const modalCodigo = document.querySelector("#modalCodigo");
+
 let filtro = "";
 
 document.addEventListener("DOMContentLoaded", renderInventario);
@@ -12,18 +25,57 @@ searchInput.addEventListener("input", () => {
 });
 
 btnNuevo.addEventListener("click", () => {
-    const nombre = prompt("Nombre del producto:");
-    if (!nombre) return;
+    openProductModal();
+});
 
-    const precio = Number(prompt("Precio del producto (ARS):"));
-    const stock = Number(prompt("Stock inicial:"));
+closeModalBtn.addEventListener("click", closeProductModal);
+cancelModalBtn.addEventListener("click", closeProductModal);
 
-    if (!Number.isFinite(precio) || precio <= 0 || !Number.isInteger(stock) || stock < 0) {
-        alert("Datos invalidos. Intenta nuevamente.");
+productModal.addEventListener("click", (event) => {
+    if (event.target === productModal) {
+        closeProductModal();
+    }
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && productModal.classList.contains("show")) {
+        closeProductModal();
+    }
+});
+
+productForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const payload = {
+        id: modalProductId.value ? Number(modalProductId.value) : null,
+        nombre: modalNombre.value.trim(),
+        categoria: modalCategoria.value.trim(),
+        precio: Number(modalPrecio.value),
+        stock: Number(modalStock.value),
+        codigo: modalCodigo.value.trim()
+    };
+
+    if (!payload.nombre || !payload.categoria) {
+        alert("Nombre y categoria son obligatorios.");
+        return;
+    }
+    if (!Number.isFinite(payload.precio) || payload.precio <= 0) {
+        alert("El precio debe ser mayor a 0.");
+        return;
+    }
+    if (!Number.isInteger(payload.stock) || payload.stock < 0) {
+        alert("La cantidad en stock debe ser un numero entero mayor o igual a 0.");
         return;
     }
 
-    window.InventoryApp.crearProducto({ nombre, precio, stock });
+    // Si hay id, editamos; si no, creamos un producto nuevo.
+    if (payload.id) {
+        window.InventoryApp.actualizarProducto(payload);
+    } else {
+        window.InventoryApp.crearProducto(payload);
+    }
+
+    closeProductModal();
     renderInventario();
 });
 
@@ -38,36 +90,28 @@ inventarioBody.addEventListener("click", (event) => {
     if (!producto) return;
 
     if (action === "edit") {
-        const nombre = prompt("Editar nombre:", producto.nombre);
-        if (!nombre) return;
-
-        const precio = Number(prompt("Editar precio:", String(producto.precio)));
-        const stock = Number(prompt("Editar stock:", String(producto.stock)));
-
-        if (!Number.isFinite(precio) || precio <= 0 || !Number.isInteger(stock) || stock < 0) {
-            alert("Datos invalidos. Intenta nuevamente.");
-            return;
-        }
-
-        window.InventoryApp.actualizarProducto({ id, nombre: nombre.trim(), precio, stock });
+        openProductModal(producto);
+        return;
     }
 
     if (action === "delete") {
         const ok = confirm(`Eliminar "${producto.nombre}" del inventario?`);
         if (!ok) return;
         window.InventoryApp.eliminarProducto(id);
+        renderInventario();
     }
-
-    renderInventario();
 });
 
 function renderInventario() {
     const productos = window.InventoryApp
         .cargarProductos()
-        .filter((item) => item.nombre.toLowerCase().includes(filtro));
+        .filter((item) => {
+            const texto = `${item.nombre} ${item.categoria || ""} ${item.codigo || ""}`.toLowerCase();
+            return texto.includes(filtro);
+        });
 
     if (productos.length === 0) {
-        inventarioBody.innerHTML = `<tr><td colspan="5" class="empty">No hay productos para mostrar.</td></tr>`;
+        inventarioBody.innerHTML = `<tr><td colspan="7" class="empty">No hay productos para mostrar.</td></tr>`;
         return;
     }
 
@@ -77,6 +121,8 @@ function renderInventario() {
             return `
                 <tr>
                     <td>${escapeHtml(producto.nombre)}</td>
+                    <td>${escapeHtml(producto.categoria || "General")}</td>
+                    <td>${escapeHtml(producto.codigo || "-")}</td>
                     <td>${window.InventoryApp.formatoMoneda(producto.precio)}</td>
                     <td>${producto.stock}</td>
                     <td><span class="estado ${estado.clase}"><i class="${estado.icono}"></i>${estado.texto}</span></td>
@@ -94,6 +140,35 @@ function renderInventario() {
             `;
         })
         .join("");
+}
+
+function openProductModal(producto = null) {
+    // El mismo modal sirve para alta y edicion.
+    if (producto) {
+        modalTitle.textContent = "Editar producto";
+        modalProductId.value = String(producto.id);
+        modalNombre.value = producto.nombre;
+        modalCategoria.value = producto.categoria || "General";
+        modalPrecio.value = String(producto.precio);
+        modalStock.value = String(producto.stock);
+        modalCodigo.value = producto.codigo || "";
+    } else {
+        modalTitle.textContent = "Agregar producto";
+        productForm.reset();
+        modalProductId.value = "";
+        modalCategoria.value = "General";
+    }
+
+    productModal.classList.add("show");
+    productModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    modalNombre.focus();
+}
+
+function closeProductModal() {
+    productModal.classList.remove("show");
+    productModal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
 }
 
 function escapeHtml(value) {
