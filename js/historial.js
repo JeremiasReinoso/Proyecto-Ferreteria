@@ -29,6 +29,11 @@ window.addEventListener("storage", (event) => {
     }
 });
 
+window.addEventListener("ventasActualizadas", () => {
+    inicializarFiltros();
+    renderHistorial();
+});
+
 function inicializarFiltros() {
     const ventas = window.InventoryApp.cargarVentas();
     const hoy = new Date();
@@ -58,7 +63,7 @@ function renderHistorial() {
 
     renderTabla(ventasFiltradas);
     renderEstadisticas(ventasFiltradas);
-    renderGrafico(ventasFiltradas, anio, mes);
+    renderGraficoMensual(anio, mes);
 }
 
 function filtrarVentasPorMes(anio, mes) {
@@ -110,32 +115,36 @@ function renderEstadisticas(ventas) {
     productoTopCard.textContent = productoTop ? `${productoTop[0]} (${productoTop[1]})` : "-";
 }
 
-function renderGrafico(ventas, anio, mes) {
-    const diasMes = new Date(anio, mes + 1, 0).getDate();
-    const labels = Array.from({ length: diasMes }, (_, i) => String(i + 1));
-    const dataPorDia = new Array(diasMes).fill(0);
+function renderGraficoMensual(anioSeleccionado, mesSeleccionado) {
+    const labels = meses;
+    const dataPorMes = new Array(12).fill(0);
+    const ventas = window.InventoryApp.cargarVentas();
 
-    // Agrupa el total vendido por cada dia del mes.
+    // Suma ingresos por cada mes del anio seleccionado.
     ventas.forEach((venta) => {
         const fecha = new Date(venta.fecha);
-        const dia = fecha.getDate() - 1;
-        dataPorDia[dia] += venta.cantidad * venta.precio;
+        if (fecha.getFullYear() !== anioSeleccionado) return;
+        const mes = fecha.getMonth();
+        dataPorMes[mes] += venta.cantidad * venta.precio;
     });
+
+    const colorBarras = labels.map((_, index) => (
+        index === mesSeleccionado ? "rgba(16, 185, 129, 0.85)" : "rgba(59, 130, 246, 0.75)"
+    ));
 
     if (chartInstance) chartInstance.destroy();
 
     chartInstance = new Chart(ventasChartCanvas, {
-        type: "line",
+        type: "bar",
         data: {
             labels,
             datasets: [{
-                label: "Ventas por dia (ARS)",
-                data: dataPorDia,
+                label: `Ventas totales por mes (${anioSeleccionado})`,
+                data: dataPorMes,
                 borderColor: "#3b82f6",
-                backgroundColor: "rgba(59, 130, 246, 0.2)",
-                fill: true,
-                tension: 0.32,
-                pointRadius: 3
+                backgroundColor: colorBarras,
+                borderRadius: 8,
+                borderSkipped: false
             }]
         },
         options: {
