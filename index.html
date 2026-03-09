@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferreteria | Control de Stock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+    <main class="app">
+        <section class="hero">
+            <h1>Panel de Inventario</h1>
+            <p>Visualiza stock, registra ventas y recibe alertas por correo cuando haya bajo inventario.</p>
+        </section>
+
+        <section class="settings">
+            <h2>Configuracion de correo</h2>
+            <p class="hint">Configura EmailJS para enviar notificaciones automaticas.</p>
+            <div class="settings-grid">
+                <label>
+                    Public Key
+                    <input id="publicKey" type="text" placeholder="Tu Public Key de EmailJS">
+                </label>
+                <label>
+                    Service ID
+                    <input id="serviceId" type="text" placeholder="Tu Service ID">
+                </label>
+                <label>
+                    Template ID
+                    <input id="templateId" type="text" placeholder="Tu Template ID">
+                </label>
+                <label>
+                    Correo destino
+                    <input id="targetEmail" type="email" placeholder="stock@tudominio.com">
+                </label>
+            </div>
+            <button id="saveConfigBtn" class="btn">Guardar configuracion</button>
+        </section>
+
+        <section class="toolbar">
+            <input id="searchInput" type="search" placeholder="Buscar producto...">
+            <button id="addProductBtn" class="btn">Agregar producto</button>
+        </section>
+
+        <section>
+            <div id="summary" class="summary"></div>
+            <div id="productsGrid" class="products-grid"></div>
+        </section>
+    </main>
+
+    <dialog id="productDialog">
+        <form method="dialog" id="productForm">
+            <h3 id="dialogTitle">Nuevo producto</h3>
+            <input type="hidden" id="productId">
+            <label>
+                Nombre
+                <input id="productName" type="text" required>
+            </label>
+            <label>
+                Categoria
+                <input id="productCategory" type="text" required>
+            </label>
+            <label>
+                Precio (ARS)
+                <input id="productPrice" type="number" min="1" step="1" required>
+            </label>
+            <label>
+                Stock inicial
+                <input id="productStock" type="number" min="0" step="1" required>
+            </label>
+            <div class="dialog-actions">
+                <button type="button" id="cancelDialogBtn" class="btn btn-ghost">Cancelar</button>
+                <button type="submit" class="btn">Guardar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="script.js"></script>
+</body>
+</html>
