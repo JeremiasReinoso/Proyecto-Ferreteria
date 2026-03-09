@@ -328,6 +328,51 @@ input[type="number"] {
     padding: 18px;
 }
 
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: grid;
+    gap: 10px;
+    width: min(360px, calc(100vw - 24px));
+    pointer-events: none;
+}
+
+.toast {
+    background: #121723;
+    border: 1px solid #3a4358;
+    border-left: 4px solid var(--warning);
+    color: var(--text);
+    border-radius: 12px;
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.4);
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    opacity: 0;
+    transform: translateX(120%);
+}
+
+.toast.show {
+    animation: toastIn 0.35s ease forwards;
+}
+
+.toast.hide {
+    animation: toastOut 0.35s ease forwards;
+}
+
+.toast i {
+    color: #f97316;
+    margin-top: 2px;
+}
+
+.toast p {
+    margin: 0;
+    line-height: 1.35;
+    font-size: 0.92rem;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -336,6 +381,28 @@ input[type="number"] {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateX(120%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(26%);
     }
 }
 
