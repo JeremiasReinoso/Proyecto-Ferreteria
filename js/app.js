@@ -7,10 +7,10 @@ const TOAST_COOLDOWN_MS = 12000;
 const ultimaNotificacionPorProducto = new Map();
 
 const productosIniciales = [
-    { id: 1, nombre: "Martillo de acero", precio: 12500, stock: 22 },
-    { id: 2, nombre: "Destornillador Phillips", precio: 6400, stock: 14 },
-    { id: 3, nombre: "Bolsa de cemento 50kg", precio: 9800, stock: 9 },
-    { id: 4, nombre: "Llave francesa 10", precio: 8700, stock: 4 }
+    { id: 1, nombre: "Martillo de acero", categoria: "Herramientas", codigo: "MAR-001", precio: 12500, stock: 22 },
+    { id: 2, nombre: "Destornillador Phillips", categoria: "Herramientas", codigo: "DES-002", precio: 6400, stock: 14 },
+    { id: 3, nombre: "Bolsa de cemento 50kg", categoria: "Construccion", codigo: "CEM-050", precio: 9800, stock: 9 },
+    { id: 4, nombre: "Llave francesa 10", categoria: "Herramientas", codigo: "LLA-010", precio: 8700, stock: 4 }
 ];
 
 if (!localStorage.getItem(STORAGE_PRODUCTOS)) {
@@ -89,7 +89,12 @@ function obtenerEstadoStock(producto) {
 function actualizarProducto(productoActualizado) {
     const productos = cargarProductos().map((item) => {
         if (item.id !== productoActualizado.id) return item;
-        return productoActualizado;
+        return {
+            ...item,
+            ...productoActualizado,
+            categoria: (productoActualizado.categoria ?? item.categoria ?? "General").trim(),
+            codigo: (productoActualizado.codigo ?? item.codigo ?? "").trim()
+        };
     });
     guardarProductos(productos);
     if (productoActualizado.stock <= LIMITE_STOCK_BAJO) {
@@ -109,6 +114,8 @@ function crearProducto(data) {
     const nuevo = {
         id: nextId,
         nombre: data.nombre.trim(),
+        categoria: (data.categoria || "General").trim(),
+        codigo: (data.codigo || "").trim(),
         precio: Number(data.precio),
         stock: Number(data.stock)
     };
@@ -194,7 +201,7 @@ function mostrarNotificacionStock(producto) {
     toast.setAttribute("role", "status");
     toast.innerHTML = `
         <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-        <p>⚠ Stock bajo: ${escapeHtml(producto.nombre)} (${producto.stock} unidades)</p>
+        <p>\u26A0 Stock bajo: ${escapeHtml(producto.nombre)} (${producto.stock} unidades)</p>
     `;
 
     container.appendChild(toast);
