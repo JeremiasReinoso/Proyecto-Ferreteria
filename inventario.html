@@ -38,7 +38,7 @@
                     </div>
                     <button id="btnNuevo" class="btn">
                         <i class="fa-solid fa-plus"></i>
-                        Nuevo producto
+                        Agregar producto
                     </button>
                 </div>
 
@@ -47,6 +47,8 @@
                         <thead>
                             <tr>
                                 <th>Nombre</th>
+                                <th>Categoria</th>
+                                <th>Codigo</th>
                                 <th>Precio</th>
                                 <th>Stock</th>
                                 <th>Estado</th>
@@ -59,6 +61,52 @@
             </section>
         </main>
     </div>
+
+    <div id="productModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <h2 id="modalTitle">Agregar producto</h2>
+                <button id="closeModalBtn" class="icon-btn" type="button" aria-label="Cerrar modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="productForm" class="modal-form">
+                <input id="modalProductId" type="hidden">
+
+                <label>
+                    Nombre del producto
+                    <input id="modalNombre" type="text" required>
+                </label>
+
+                <label>
+                    Categoria
+                    <input id="modalCategoria" type="text" required>
+                </label>
+
+                <label>
+                    Precio
+                    <input id="modalPrecio" type="number" min="1" required>
+                </label>
+
+                <label>
+                    Cantidad en stock
+                    <input id="modalStock" type="number" min="0" required>
+                </label>
+
+                <label>
+                    Codigo del producto (opcional)
+                    <input id="modalCodigo" type="text" maxlength="30">
+                </label>
+
+                <div class="modal-actions">
+                    <button id="cancelModalBtn" type="button" class="btn ghost">Cancelar</button>
+                    <button type="submit" class="btn">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <script src="js/app.js"></script>
