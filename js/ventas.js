@@ -20,7 +20,8 @@ ventaForm.addEventListener("submit", (event) => {
 
     try {
         const venta = window.InventoryApp.registrarVenta(productoId, cantidad);
-        ventaFeedback.textContent = `Venta registrada: ${venta.cantidad} x ${venta.nombreProducto} por ${window.InventoryApp.formatoMoneda(venta.total)}.`;
+        const total = venta.cantidad * venta.precio;
+        ventaFeedback.textContent = `Venta registrada: ${venta.cantidad} x ${venta.producto} por ${window.InventoryApp.formatoMoneda(total)}.`;
         ventaForm.reset();
         ventaCantidad.value = "1";
         cargarOpcionesProductos();
@@ -61,9 +62,9 @@ function renderVentas() {
             return `
                 <tr>
                     <td>${window.InventoryApp.formatoFechaHora(venta.fecha)}</td>
-                    <td>${escapeHtml(venta.nombreProducto)}</td>
+                    <td>${escapeHtml(venta.producto)}</td>
                     <td>${venta.cantidad}</td>
-                    <td>${window.InventoryApp.formatoMoneda(venta.total)}</td>
+                    <td>${window.InventoryApp.formatoMoneda(venta.precio * venta.cantidad)}</td>
                 </tr>
             `;
         })
