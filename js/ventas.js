@@ -9,6 +9,8 @@ const ticketModal = document.querySelector("#ticketModal");
 const ticketContent = document.querySelector("#ticketContent");
 const closeTicketBtn = document.querySelector("#closeTicketBtn");
 const printTicketBtn = document.querySelector("#printTicketBtn");
+const printMomentBtn = document.querySelector("#printMomentBtn");
+const ventasDelMomento = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     try {
@@ -24,9 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
         cargarOpcionesProductos();
         renderVentas();
         renderCards();
+        prepararVentasDelMomento();
 
         ventaForm.addEventListener("submit", handleSubmit);
-        document.addEventListener("click", handleTicketClick);
         if (closeTicketBtn) closeTicketBtn.addEventListener("click", closeTicketModal);
         if (ticketModal) {
             ticketModal.addEventListener("click", (event) => {
@@ -34,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
         if (printTicketBtn) printTicketBtn.addEventListener("click", () => window.print());
+        if (printMomentBtn) printMomentBtn.addEventListener("click", imprimirVentasDelMomento);
     } catch (error) {
         console.error("[ventas] Error inicializando", error);
     }
@@ -50,6 +53,7 @@ function handleSubmit(event) {
         ventaFeedback.textContent = `Venta registrada: ${venta.cantidad} x ${venta.producto} por ${window.InventoryApp.formatoMoneda(venta.total)}.`;
         ventaForm.reset();
         ventaCantidad.value = "1";
+        ventasDelMomento.unshift(venta);
         cargarOpcionesProductos();
         renderVentas();
         renderCards();
@@ -80,7 +84,7 @@ function renderVentas() {
         .filter((venta) => Date.now() - venta.timestamp < 86400000);
 
     if (ventas.length === 0) {
-        ventasBody.innerHTML = `<tr><td colspan="5" class="empty">Todavia no hay ventas registradas.</td></tr>`;
+        ventasBody.innerHTML = `<tr><td colspan="4" class="empty">Todavia no hay ventas registradas.</td></tr>`;
         return;
     }
 
@@ -93,7 +97,6 @@ function renderVentas() {
                     <td>${escapeHtml(venta.producto)}</td>
                     <td>${venta.cantidad}</td>
                     <td>${window.InventoryApp.formatoMoneda(venta.total)}</td>
-                    <td><button class="btn-ticket" data-id="${venta.id}">Imprimir</button></td>
                 </tr>
             `;
         })
@@ -115,24 +118,53 @@ function escapeHtml(value) {
         .replaceAll("'", "&#39;");
 }
 
-function handleTicketClick(event) {
-    const btnTicket = event.target.closest(".btn-ticket");
-    if (!btnTicket) return;
-
-    const id = Number(btnTicket.dataset.id);
-    imprimirTicket(id);
+function prepararVentasDelMomento() {
+    ventasDelMomento.length = 0;
+    const ventasHoy = window.InventoryApp.cargarVentas()
+        .filter((venta) => Date.now() - venta.timestamp < 86400000);
+    ventasDelMomento.push(...ventasHoy);
 }
 
-function imprimirTicket(id) {
-    const ventas = window.InventoryApp.cargarVentas();
-    const venta = ventas.find((item) => item.id === id);
-
-    if (!venta) {
-        console.warn("[ventas] No se encontro la venta para imprimir.");
+function imprimirVentasDelMomento() {
+    if (ventasDelMomento.length === 0) {
+        ventaFeedback.textContent = "No hay ventas del momento para imprimir.";
+        return;
+    }
+    if (!ticketModal || !ticketContent) {
+        console.warn("[ventas] No se encontro el modal del ticket.");
         return;
     }
 
-    abrirTicketVenta(venta);
+    const totalGeneral = ventasDelMomento.reduce((acc, venta) => acc + venta.total, 0);
+    const filas = ventasDelMomento
+        .map((venta) => {
+            return `
+                <div class="ticket-row">
+                    <span>${escapeHtml(venta.producto)} x ${venta.cantidad}</span>
+                    <strong>${window.InventoryApp.formatoMoneda(venta.total)}</strong>
+                </div>
+            `;
+        })
+        .join("");
+
+    ticketContent.innerHTML = `
+        <div class="ticket-print">
+            <h3>Ventas del momento</h3>
+            <small>${window.InventoryApp.formatoFechaHora(new Date().toISOString())}</small>
+            <div class="ticket-line"></div>
+            ${filas}
+            <div class="ticket-line"></div>
+            <div class="ticket-row ticket-total">
+                <span>TOTAL GENERAL</span>
+                <strong>${window.InventoryApp.formatoMoneda(totalGeneral)}</strong>
+            </div>
+        </div>
+    `;
+
+    ticketModal.classList.add("show");
+    ticketModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+
     requestAnimationFrame(() => {
         window.print();
     });
