@@ -16,6 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
             console.warn("[ventas] Faltan elementos en el DOM.");
             return;
         }
+        if (!window.InventoryApp) {
+            console.error("[ventas] InventoryApp no esta disponible.");
+            return;
+        }
         console.log("[ventas] DOM listo");
         cargarOpcionesProductos();
         renderVentas();
@@ -50,6 +54,7 @@ function handleSubmit(event) {
         renderCards();
         abrirTicketVenta(venta);
     } catch (error) {
+        console.error("[ventas] Error registrando venta", error);
         ventaFeedback.textContent = error.message;
     }
 }
