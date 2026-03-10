@@ -11,18 +11,30 @@ const closeTicketBtn = document.querySelector("#closeTicketBtn");
 const printTicketBtn = document.querySelector("#printTicketBtn");
 
 document.addEventListener("DOMContentLoaded", () => {
-    cargarOpcionesProductos();
-    renderVentas();
-    renderCards();
+    try {
+        if (!ventaForm || !ventaProducto || !ventaCantidad || !ventasBody) {
+            console.warn("[ventas] Faltan elementos en el DOM.");
+            return;
+        }
+        console.log("[ventas] DOM listo");
+        cargarOpcionesProductos();
+        renderVentas();
+        renderCards();
+
+        ventaForm.addEventListener("submit", handleSubmit);
+        if (closeTicketBtn) closeTicketBtn.addEventListener("click", closeTicketModal);
+        if (ticketModal) {
+            ticketModal.addEventListener("click", (event) => {
+                if (event.target === ticketModal) closeTicketModal();
+            });
+        }
+        if (printTicketBtn) printTicketBtn.addEventListener("click", () => window.print());
+    } catch (error) {
+        console.error("[ventas] Error inicializando", error);
+    }
 });
 
-closeTicketBtn.addEventListener("click", closeTicketModal);
-ticketModal.addEventListener("click", (event) => {
-    if (event.target === ticketModal) closeTicketModal();
-});
-printTicketBtn.addEventListener("click", () => window.print());
-
-ventaForm.addEventListener("submit", (event) => {
+function handleSubmit(event) {
     event.preventDefault();
 
     const productoId = Number(ventaProducto.value);
@@ -40,7 +52,7 @@ ventaForm.addEventListener("submit", (event) => {
     } catch (error) {
         ventaFeedback.textContent = error.message;
     }
-});
+}
 
 function cargarOpcionesProductos() {
     const productos = window.InventoryApp.cargarProductos();
@@ -84,8 +96,8 @@ function renderVentas() {
 
 function renderCards() {
     const resumen = window.InventoryApp.obtenerResumenHoy();
-    ventasDiaCard.textContent = resumen.ventasDelDia;
-    ingresosDiaCard.textContent = window.InventoryApp.formatoMoneda(resumen.ingresosDelDia);
+    if (ventasDiaCard) ventasDiaCard.textContent = resumen.ventasDelDia;
+    if (ingresosDiaCard) ingresosDiaCard.textContent = window.InventoryApp.formatoMoneda(resumen.ingresosDelDia);
 }
 
 function escapeHtml(value) {
@@ -98,6 +110,11 @@ function escapeHtml(value) {
 }
 
 function abrirTicketVenta(venta) {
+    if (!ticketModal || !ticketContent) {
+        console.warn("[ventas] No se encontro el modal del ticket.");
+        return;
+    }
+
     const fechaHora = window.InventoryApp.formatoFechaHora(new Date(venta.timestamp).toISOString());
     ticketContent.innerHTML = `
         <div class="ticket-print">
