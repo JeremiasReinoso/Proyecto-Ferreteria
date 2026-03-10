@@ -15,11 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
 ventaForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    const productoId = Number(ventaProducto.value);
+    const nombreProducto = decodeURIComponent(ventaProducto.value);
     const cantidad = Number(ventaCantidad.value);
 
     try {
-        const venta = window.InventoryApp.registrarVenta(productoId, cantidad);
+        const venta = window.InventoryApp.registrarVenta(nombreProducto, cantidad);
         const total = venta.cantidad * venta.precio;
         ventaFeedback.textContent = `Venta registrada: ${venta.cantidad} x ${venta.producto} por ${window.InventoryApp.formatoMoneda(total)}.`;
         ventaForm.reset();
@@ -42,8 +42,9 @@ function cargarOpcionesProductos() {
 
     ventaProducto.innerHTML = productos
         .map((producto) => {
-            const disabled = producto.stock <= 0 ? "disabled" : "";
-            return `<option value="${producto.id}" ${disabled}>${escapeHtml(producto.nombre)} | Stock: ${producto.stock}</option>`;
+            const disabled = producto.cantidad <= 0 ? "disabled" : "";
+            const nombreValue = encodeURIComponent(producto.nombre);
+            return `<option value="${nombreValue}" ${disabled}>${escapeHtml(producto.nombre)} | Stock: ${producto.cantidad}</option>`;
         })
         .join("");
 }
