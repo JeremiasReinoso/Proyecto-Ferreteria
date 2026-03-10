@@ -147,12 +147,16 @@ function registrarVenta(productoId, cantidad) {
         enviarAlertaStock(producto);
     }
 
+    const timestamp = Date.now();
+    const fechaIso = new Date(timestamp).toISOString();
     const venta = {
-        id: Date.now(),
+        id: timestamp,
         producto: producto.nombre,
         cantidad,
         precio: producto.precio,
-        fecha: new Date().toISOString()
+        total: producto.precio * cantidad,
+        fecha: fechaIso.slice(0, 10),
+        timestamp
     };
 
     ventas.unshift(venta);
@@ -166,11 +170,10 @@ function registrarVenta(productoId, cantidad) {
 function obtenerResumenHoy() {
     const productos = cargarProductos();
     const ventas = cargarVentas();
-    const hoy = new Date().toISOString().slice(0, 10);
-
-    const ventasHoy = ventas.filter((venta) => venta.fecha.slice(0, 10) === hoy);
+    const ahora = Date.now();
+    const ventasHoy = ventas.filter((venta) => ahora - venta.timestamp < 86400000);
     const ventasDelDia = ventasHoy.reduce((acc, venta) => acc + venta.cantidad, 0);
-    const ingresosDelDia = ventasHoy.reduce((acc, venta) => acc + venta.precio * venta.cantidad, 0);
+    const ingresosDelDia = ventasHoy.reduce((acc, venta) => acc + venta.total, 0);
     const stockBajo = productos.filter((item) => item.stock <= LIMITE_STOCK_BAJO).length;
 
     return {
@@ -289,17 +292,21 @@ function normalizarVenta(venta) {
     const producto = String(venta.producto || venta.nombreProducto || "").trim();
     const cantidad = Number(venta.cantidad);
     const precio = Number(venta.precio ?? venta.precioUnitario);
-    const fecha = String(venta.fecha || new Date().toISOString());
-    const id = Number(venta.id || Date.now());
+    const fecha = String(venta.fecha || new Date().toISOString().slice(0, 10));
+    const timestamp = Number(venta.timestamp || Date.parse(venta.fecha) || Date.now());
+    const total = Number(venta.total ?? (precio * cantidad));
+    const id = Number(venta.id || timestamp || Date.now());
 
-    if (!producto || !Number.isFinite(cantidad) || !Number.isFinite(precio)) return null;
+    if (!producto || !Number.isFinite(cantidad) || !Number.isFinite(precio) || !Number.isFinite(total)) return null;
 
     return {
         id,
         producto,
         cantidad,
         precio,
-        fecha
+        total,
+        fecha,
+        timestamp
     };
 }
 
