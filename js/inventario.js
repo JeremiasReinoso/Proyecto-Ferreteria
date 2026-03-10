@@ -24,6 +24,10 @@ document.addEventListener("DOMContentLoaded", () => {
             console.warn("[inventario] Faltan elementos en el DOM.");
             return;
         }
+        if (!window.InventoryApp) {
+            console.error("[inventario] InventoryApp no esta disponible.");
+            return;
+        }
         console.log("[inventario] DOM listo");
         renderInventario();
 
@@ -91,9 +95,19 @@ function handleSubmit(event) {
 
     // Si hay id, editamos; si no, creamos un producto nuevo.
     if (payload.id) {
-        window.InventoryApp.actualizarProducto(payload);
+        try {
+            window.InventoryApp.actualizarProducto(payload);
+        } catch (error) {
+            console.error("[inventario] Error al actualizar", error);
+            return;
+        }
     } else {
-        window.InventoryApp.crearProducto(payload);
+        try {
+            window.InventoryApp.crearProducto(payload);
+        } catch (error) {
+            console.error("[inventario] Error al crear", error);
+            return;
+        }
     }
 
     closeProductModal();
@@ -118,7 +132,12 @@ function handleTableClick(event) {
     if (action === "delete") {
         const ok = confirm(`Eliminar "${producto.nombre}" del inventario?`);
         if (!ok) return;
-        window.InventoryApp.eliminarProducto(id);
+        try {
+            window.InventoryApp.eliminarProducto(id);
+        } catch (error) {
+            console.error("[inventario] Error al eliminar", error);
+            return;
+        }
         renderInventario();
     }
 }
