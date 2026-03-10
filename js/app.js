@@ -170,16 +170,15 @@ function registrarVenta(productoId, cantidad) {
 function obtenerResumenHoy() {
     const productos = cargarProductos();
     const ventas = cargarVentas();
-    const ahora = Date.now();
-    const ventasHoy = ventas.filter((venta) => ahora - venta.timestamp < 86400000);
-    const ventasDelDia = ventasHoy.reduce((acc, venta) => acc + venta.cantidad, 0);
-    const ingresosDelDia = ventasHoy.reduce((acc, venta) => acc + venta.total, 0);
+    const ventasDelDia = filtrarVentasDiaComercial(ventas);
+    const cantidadVentas = ventasDelDia.length;
+    const ingresosDelDia = ventasDelDia.reduce((acc, venta) => acc + venta.total, 0);
     const stockBajo = productos.filter((item) => item.stock <= LIMITE_STOCK_BAJO).length;
 
     return {
         totalProductos: productos.length,
         stockBajo,
-        ventasDelDia,
+        ventasDelDia: cantidadVentas,
         ingresosDelDia,
         alertas: productos.filter((item) => item.stock <= LIMITE_STOCK_BAJO)
     };
@@ -308,6 +307,20 @@ function normalizarVenta(venta) {
         fecha,
         timestamp
     };
+}
+
+function filtrarVentasDiaComercial(ventas) {
+    const ahora = new Date();
+    const inicioDiaComercial = new Date();
+    inicioDiaComercial.setHours(6, 0, 0, 0);
+
+    // Si aun no son las 06:00, el dia comercial arranca en las 06:00 del dia anterior.
+    if (ahora < inicioDiaComercial) {
+        inicioDiaComercial.setDate(inicioDiaComercial.getDate() - 1);
+    }
+
+    const inicioTimestamp = inicioDiaComercial.getTime();
+    return ventas.filter((venta) => venta.timestamp >= inicioTimestamp);
 }
 
 function setFechaActual() {
