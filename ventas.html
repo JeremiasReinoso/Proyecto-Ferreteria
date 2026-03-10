@@ -41,10 +41,16 @@
                         Cantidad
                         <input id="ventaCantidad" type="number" min="1" value="1" required>
                     </label>
-                    <button type="submit" class="btn">
-                        <i class="fa-solid fa-check"></i>
-                        Registrar venta
-                    </button>
+                    <div class="venta-actions">
+                        <button type="submit" class="btn">
+                            <i class="fa-solid fa-check"></i>
+                            Registrar venta
+                        </button>
+                        <button type="button" id="printMomentBtn" class="btn secondary">
+                            <i class="fa-solid fa-receipt"></i>
+                            Imprimir ventas del momento
+                        </button>
+                    </div>
                 </form>
                 <p id="ventaFeedback" class="feedback"></p>
             </section>
@@ -72,7 +78,6 @@
                                 <th>Producto</th>
                                 <th>Cantidad</th>
                                 <th>Total</th>
-                                <th>Ticket</th>
                             </tr>
                         </thead>
                         <tbody id="ventasBody"></tbody>
