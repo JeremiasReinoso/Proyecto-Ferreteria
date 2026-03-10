@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderCards();
 
         ventaForm.addEventListener("submit", handleSubmit);
+        document.addEventListener("click", handleTicketClick);
         if (closeTicketBtn) closeTicketBtn.addEventListener("click", closeTicketModal);
         if (ticketModal) {
             ticketModal.addEventListener("click", (event) => {
@@ -52,7 +53,6 @@ function handleSubmit(event) {
         cargarOpcionesProductos();
         renderVentas();
         renderCards();
-        abrirTicketVenta(venta);
     } catch (error) {
         console.error("[ventas] Error registrando venta", error);
         ventaFeedback.textContent = error.message;
@@ -80,7 +80,7 @@ function renderVentas() {
         .filter((venta) => Date.now() - venta.timestamp < 86400000);
 
     if (ventas.length === 0) {
-        ventasBody.innerHTML = `<tr><td colspan="4" class="empty">Todavia no hay ventas registradas.</td></tr>`;
+        ventasBody.innerHTML = `<tr><td colspan="5" class="empty">Todavia no hay ventas registradas.</td></tr>`;
         return;
     }
 
@@ -93,6 +93,7 @@ function renderVentas() {
                     <td>${escapeHtml(venta.producto)}</td>
                     <td>${venta.cantidad}</td>
                     <td>${window.InventoryApp.formatoMoneda(venta.total)}</td>
+                    <td><button class="btn-ticket" data-id="${venta.id}">Imprimir</button></td>
                 </tr>
             `;
         })
@@ -112,6 +113,29 @@ function escapeHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll("\"", "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+function handleTicketClick(event) {
+    const btnTicket = event.target.closest(".btn-ticket");
+    if (!btnTicket) return;
+
+    const id = Number(btnTicket.dataset.id);
+    imprimirTicket(id);
+}
+
+function imprimirTicket(id) {
+    const ventas = window.InventoryApp.cargarVentas();
+    const venta = ventas.find((item) => item.id === id);
+
+    if (!venta) {
+        console.warn("[ventas] No se encontro la venta para imprimir.");
+        return;
+    }
+
+    abrirTicketVenta(venta);
+    requestAnimationFrame(() => {
+        window.print();
+    });
 }
 
 function abrirTicketVenta(venta) {
