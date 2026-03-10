@@ -18,37 +18,53 @@ const generateCodeBtn = document.querySelector("#generateCodeBtn");
 
 let filtro = "";
 
-document.addEventListener("DOMContentLoaded", renderInventario);
+document.addEventListener("DOMContentLoaded", () => {
+    try {
+        if (!inventarioBody || !searchInput || !btnNuevo || !productModal || !productForm) {
+            console.warn("[inventario] Faltan elementos en el DOM.");
+            return;
+        }
+        console.log("[inventario] DOM listo");
+        renderInventario();
 
-searchInput.addEventListener("input", () => {
-    filtro = searchInput.value.trim().toLowerCase();
-    renderInventario();
-});
+        searchInput.addEventListener("input", () => {
+            filtro = searchInput.value.trim().toLowerCase();
+            renderInventario();
+        });
 
-btnNuevo.addEventListener("click", () => {
-    openProductModal();
-});
+        btnNuevo.addEventListener("click", () => {
+            openProductModal();
+        });
 
-generateCodeBtn.addEventListener("click", () => {
-    modalCodigo.value = generarCodigoProducto();
-});
+        if (generateCodeBtn) {
+            generateCodeBtn.addEventListener("click", () => {
+                modalCodigo.value = generarCodigoProducto();
+            });
+        }
 
-closeModalBtn.addEventListener("click", closeProductModal);
-cancelModalBtn.addEventListener("click", closeProductModal);
+        if (closeModalBtn) closeModalBtn.addEventListener("click", closeProductModal);
+        if (cancelModalBtn) cancelModalBtn.addEventListener("click", closeProductModal);
 
-productModal.addEventListener("click", (event) => {
-    if (event.target === productModal) {
-        closeProductModal();
+        productModal.addEventListener("click", (event) => {
+            if (event.target === productModal) {
+                closeProductModal();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && productModal.classList.contains("show")) {
+                closeProductModal();
+            }
+        });
+
+        productForm.addEventListener("submit", handleSubmit);
+        inventarioBody.addEventListener("click", handleTableClick);
+    } catch (error) {
+        console.error("[inventario] Error inicializando", error);
     }
 });
 
-document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && productModal.classList.contains("show")) {
-        closeProductModal();
-    }
-});
-
-productForm.addEventListener("submit", (event) => {
+function handleSubmit(event) {
     event.preventDefault();
 
     const payload = {
@@ -82,9 +98,9 @@ productForm.addEventListener("submit", (event) => {
 
     closeProductModal();
     renderInventario();
-});
+}
 
-inventarioBody.addEventListener("click", (event) => {
+function handleTableClick(event) {
     const button = event.target.closest("button[data-action]");
     if (!button) return;
 
@@ -105,7 +121,7 @@ inventarioBody.addEventListener("click", (event) => {
         window.InventoryApp.eliminarProducto(id);
         renderInventario();
     }
-});
+}
 
 function renderInventario() {
     const productos = window.InventoryApp
