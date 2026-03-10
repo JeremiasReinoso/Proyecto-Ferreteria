@@ -242,15 +242,6 @@ input::placeholder {
     background: var(--danger);
 }
 
-.btn.secondary {
-    background: linear-gradient(135deg, #1f7ae0, #2454c4);
-    box-shadow: 0 10px 22px rgba(36, 84, 196, 0.28);
-}
-
-.btn.secondary:active {
-    transform: scale(0.98);
-}
-
 .table-wrap {
     overflow-x: auto;
 }
@@ -331,17 +322,6 @@ input[type="number"] {
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 10px 12px;
-}
-
-.code-field {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px;
-    align-items: center;
-}
-
-.code-field .btn {
-    white-space: nowrap;
 }
 
 .feedback {
@@ -532,12 +512,4 @@ input[type="number"] {
         justify-content: center;
     }
 
-    .code-field {
-        grid-template-columns: 1fr;
-    }
-
-    .code-field .btn {
-        width: 100%;
-        justify-content: center;
-    }
 }
