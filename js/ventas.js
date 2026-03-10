@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
         prepararVentasDelMomento();
 
         ventaForm.addEventListener("submit", handleSubmit);
+        document.addEventListener("keydown", handleEnterSubmit);
         if (closeTicketBtn) closeTicketBtn.addEventListener("click", closeTicketModal);
         if (ticketModal) {
             ticketModal.addEventListener("click", (event) => {
@@ -44,9 +45,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function handleSubmit(event) {
     event.preventDefault();
+    registrarVenta();
+}
 
+function registrarVenta() {
     const productoId = Number(ventaProducto.value);
-    const cantidad = Number(ventaCantidad.value);
+    let cantidad = Number(ventaCantidad.value);
+
+    if (!Number.isFinite(cantidad) || cantidad <= 0) {
+        cantidad = 1;
+    }
 
     try {
         const venta = window.InventoryApp.registrarVenta(productoId, cantidad);
@@ -116,6 +124,16 @@ function escapeHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll("\"", "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+function handleEnterSubmit(event) {
+    if (event.key !== "Enter") return;
+
+    const active = document.activeElement;
+    if (active !== ventaProducto && active !== ventaCantidad) return;
+
+    event.preventDefault();
+    registrarVenta();
 }
 
 function prepararVentasDelMomento() {
