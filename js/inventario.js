@@ -71,6 +71,10 @@ document.addEventListener("click", (event) => {
     const editarBtn = event.target.closest(".btn-editar");
     if (editarBtn) {
         const id = Number(editarBtn.dataset.id);
+        if (Number.isNaN(id)) {
+            console.warn("[inventario] data-id invalido en btn-editar", editarBtn);
+            return;
+        }
         console.log("Editar producto", id);
         editarProducto(id);
         return;
@@ -79,6 +83,10 @@ document.addEventListener("click", (event) => {
     const borrarBtn = event.target.closest(".btn-borrar");
     if (borrarBtn) {
         const id = Number(borrarBtn.dataset.id);
+        if (Number.isNaN(id)) {
+            console.warn("[inventario] data-id invalido en btn-borrar", borrarBtn);
+            return;
+        }
         console.log("Borrar producto", id);
         borrarProducto(id);
     }
