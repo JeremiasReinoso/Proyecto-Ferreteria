@@ -68,7 +68,7 @@ function renderHistorial() {
 
 function filtrarVentasPorMes(anio, mes) {
     return window.InventoryApp.cargarVentas().filter((venta) => {
-        const fecha = new Date(venta.fecha);
+        const fecha = new Date(venta.timestamp);
         return fecha.getFullYear() === anio && fecha.getMonth() === mes;
     });
 }
@@ -83,14 +83,14 @@ function renderTabla(ventas) {
         .slice()
         .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
         .map((venta) => {
-            const total = venta.cantidad * venta.precio;
+            const total = venta.total ?? (venta.cantidad * venta.precio);
             return `
                 <tr>
                     <td>${escapeHtml(venta.producto)}</td>
                     <td>${venta.cantidad}</td>
                     <td>${window.InventoryApp.formatoMoneda(venta.precio)}</td>
                     <td>${window.InventoryApp.formatoMoneda(total)}</td>
-                    <td>${window.InventoryApp.formatoFechaHora(venta.fecha)}</td>
+                    <td>${window.InventoryApp.formatoFechaHora(new Date(venta.timestamp).toISOString())}</td>
                 </tr>
             `;
         })
@@ -99,7 +99,7 @@ function renderTabla(ventas) {
 
 function renderEstadisticas(ventas) {
     // Total facturado en el periodo seleccionado.
-    const totalVendido = ventas.reduce((sum, venta) => sum + venta.cantidad * venta.precio, 0);
+    const totalVendido = ventas.reduce((sum, venta) => sum + (venta.total ?? (venta.cantidad * venta.precio)), 0);
     // Cantidad de operaciones de venta del periodo.
     const cantidadTotal = ventas.length;
 
@@ -125,7 +125,7 @@ function renderGraficoMensual(anioSeleccionado, mesSeleccionado) {
         const fecha = new Date(venta.fecha);
         if (fecha.getFullYear() !== anioSeleccionado) return;
         const mes = fecha.getMonth();
-        dataPorMes[mes] += venta.cantidad * venta.precio;
+        dataPorMes[mes] += venta.total ?? (venta.cantidad * venta.precio);
     });
 
     const colorBarras = labels.map((_, index) => (
