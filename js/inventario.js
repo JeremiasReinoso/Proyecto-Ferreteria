@@ -8,13 +8,10 @@ const cancelModalBtn = document.querySelector("#cancelModalBtn");
 const productForm = document.querySelector("#productForm");
 const modalTitle = document.querySelector("#modalTitle");
 
-const modalProductId = document.querySelector("#modalProductId");
+const modalOriginalNombre = document.querySelector("#modalOriginalNombre");
 const modalNombre = document.querySelector("#modalNombre");
-const modalCategoria = document.querySelector("#modalCategoria");
 const modalPrecio = document.querySelector("#modalPrecio");
-const modalStock = document.querySelector("#modalStock");
-const modalCodigo = document.querySelector("#modalCodigo");
-const generateCodeBtn = document.querySelector("#generateCodeBtn");
+const modalCantidad = document.querySelector("#modalCantidad");
 
 let filtro = "";
 
@@ -27,10 +24,6 @@ searchInput.addEventListener("input", () => {
 
 btnNuevo.addEventListener("click", () => {
     openProductModal();
-});
-
-generateCodeBtn.addEventListener("click", () => {
-    modalCodigo.value = generarCodigoProducto();
 });
 
 closeModalBtn.addEventListener("click", closeProductModal);
@@ -52,30 +45,41 @@ productForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
     const payload = {
-        id: modalProductId.value ? Number(modalProductId.value) : null,
         nombre: modalNombre.value.trim(),
-        categoria: modalCategoria.value.trim(),
         precio: Number(modalPrecio.value),
-        stock: Number(modalStock.value),
-        codigo: modalCodigo.value.trim()
+        cantidad: Number(modalCantidad.value)
     };
 
-    if (!payload.nombre || !payload.categoria) {
-        alert("Nombre y categoria son obligatorios.");
+    if (!payload.nombre) {
+        alert("El nombre del producto es obligatorio.");
         return;
     }
     if (!Number.isFinite(payload.precio) || payload.precio <= 0) {
         alert("El precio debe ser mayor a 0.");
         return;
     }
-    if (!Number.isInteger(payload.stock) || payload.stock < 0) {
-        alert("La cantidad en stock debe ser un numero entero mayor o igual a 0.");
+    if (!Number.isInteger(payload.cantidad) || payload.cantidad < 0) {
+        alert("La cantidad debe ser un numero entero mayor o igual a 0.");
         return;
     }
 
-    // Si hay id, editamos; si no, creamos un producto nuevo.
-    if (payload.id) {
-        window.InventoryApp.actualizarProducto(payload);
+    const productos = window.InventoryApp.cargarProductos();
+    const nombreOriginal = modalOriginalNombre.value.trim();
+    const nombreNormalizado = payload.nombre.toLowerCase();
+    const nombreOriginalNormalizado = nombreOriginal.toLowerCase();
+    const duplicado = productos.some((producto) => (
+        producto.nombre.toLowerCase() === nombreNormalizado &&
+        producto.nombre.toLowerCase() !== nombreOriginalNormalizado
+    ));
+
+    if (duplicado) {
+        alert("Ya existe un producto con ese nombre. Usa un nombre unico.");
+        return;
+    }
+
+    // El nombre es la clave unica del producto para alta, edicion y ventas.
+    if (nombreOriginal) {
+        window.InventoryApp.actualizarProducto(payload, nombreOriginal);
     } else {
         window.InventoryApp.crearProducto(payload);
     }
@@ -88,10 +92,10 @@ inventarioBody.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button) return;
 
-    const id = Number(button.dataset.id);
+    const nombre = decodeURIComponent(button.dataset.nombre || "");
     const action = button.dataset.action;
     const productos = window.InventoryApp.cargarProductos();
-    const producto = productos.find((item) => item.id === id);
+    const producto = productos.find((item) => item.nombre === nombre);
     if (!producto) return;
 
     if (action === "edit") {
@@ -102,7 +106,7 @@ inventarioBody.addEventListener("click", (event) => {
     if (action === "delete") {
         const ok = confirm(`Eliminar "${producto.nombre}" del inventario?`);
         if (!ok) return;
-        window.InventoryApp.eliminarProducto(id);
+        window.InventoryApp.eliminarProducto(producto.nombre);
         renderInventario();
     }
 });
@@ -110,33 +114,29 @@ inventarioBody.addEventListener("click", (event) => {
 function renderInventario() {
     const productos = window.InventoryApp
         .cargarProductos()
-        .filter((item) => {
-            const texto = `${item.nombre} ${item.categoria || ""} ${item.codigo || ""}`.toLowerCase();
-            return texto.includes(filtro);
-        });
+        .filter((item) => item.nombre.toLowerCase().includes(filtro));
 
     if (productos.length === 0) {
-        inventarioBody.innerHTML = `<tr><td colspan="7" class="empty">No hay productos para mostrar.</td></tr>`;
+        inventarioBody.innerHTML = `<tr><td colspan="5" class="empty">No hay productos para mostrar.</td></tr>`;
         return;
     }
 
     inventarioBody.innerHTML = productos
         .map((producto) => {
             const estado = window.InventoryApp.obtenerEstadoStock(producto);
+            const nombreData = encodeURIComponent(producto.nombre);
             return `
                 <tr>
                     <td>${escapeHtml(producto.nombre)}</td>
-                    <td>${escapeHtml(producto.categoria || "General")}</td>
-                    <td>${escapeHtml(producto.codigo || "-")}</td>
                     <td>${window.InventoryApp.formatoMoneda(producto.precio)}</td>
-                    <td>${producto.stock}</td>
+                    <td>${producto.cantidad}</td>
                     <td><span class="estado ${estado.clase}"><i class="${estado.icono}"></i>${estado.texto}</span></td>
                     <td>
                         <div class="acciones">
-                            <button class="btn small ghost" data-action="edit" data-id="${producto.id}">
+                            <button class="btn small ghost" data-action="edit" data-nombre="${nombreData}">
                                 <i class="fa-solid fa-pen"></i> Editar
                             </button>
-                            <button class="btn small danger" data-action="delete" data-id="${producto.id}">
+                            <button class="btn small danger" data-action="delete" data-nombre="${nombreData}">
                                 <i class="fa-solid fa-trash"></i> Eliminar
                             </button>
                         </div>
@@ -148,20 +148,16 @@ function renderInventario() {
 }
 
 function openProductModal(producto = null) {
-    // El mismo modal sirve para alta y edicion.
     if (producto) {
         modalTitle.textContent = "Editar producto";
-        modalProductId.value = String(producto.id);
+        modalOriginalNombre.value = producto.nombre;
         modalNombre.value = producto.nombre;
-        modalCategoria.value = producto.categoria || "General";
         modalPrecio.value = String(producto.precio);
-        modalStock.value = String(producto.stock);
-        modalCodigo.value = producto.codigo || "";
+        modalCantidad.value = String(producto.cantidad);
     } else {
         modalTitle.textContent = "Agregar producto";
         productForm.reset();
-        modalProductId.value = "";
-        modalCategoria.value = "General";
+        modalOriginalNombre.value = "";
     }
 
     productModal.classList.add("show");
@@ -174,21 +170,6 @@ function closeProductModal() {
     productModal.classList.remove("show");
     productModal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
-}
-
-function generarCodigoProducto() {
-    const productos = window.InventoryApp.cargarProductos();
-
-    // Busca codigos existentes con formato PROD-000X para calcular el siguiente correlativo.
-    const ultimoNumero = productos.reduce((maximo, producto) => {
-        const match = String(producto.codigo || "").match(/^PROD-(\d{4})$/);
-        if (!match) return maximo;
-        return Math.max(maximo, Number(match[1]));
-    }, 0);
-
-    const siguienteNumero = ultimoNumero + 1;
-    const codigo = `PROD-${String(siguienteNumero).padStart(4, "0")}`;
-    return codigo;
 }
 
 function escapeHtml(value) {
