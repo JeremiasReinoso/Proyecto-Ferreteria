@@ -62,9 +62,25 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         productForm.addEventListener("submit", handleSubmit);
-        inventarioBody.addEventListener("click", handleTableClick);
     } catch (error) {
         console.error("[inventario] Error inicializando", error);
+    }
+});
+
+document.addEventListener("click", (event) => {
+    const editarBtn = event.target.closest(".btn-editar");
+    if (editarBtn) {
+        const id = Number(editarBtn.dataset.id);
+        console.log("Editar producto", id);
+        editarProducto(id);
+        return;
+    }
+
+    const borrarBtn = event.target.closest(".btn-borrar");
+    if (borrarBtn) {
+        const id = Number(borrarBtn.dataset.id);
+        console.log("Borrar producto", id);
+        borrarProducto(id);
     }
 });
 
@@ -114,34 +130,6 @@ function handleSubmit(event) {
     renderInventario();
 }
 
-function handleTableClick(event) {
-    const button = event.target.closest("button[data-action]");
-    if (!button) return;
-
-    const id = Number(button.dataset.id);
-    const action = button.dataset.action;
-    const productos = window.InventoryApp.cargarProductos();
-    const producto = productos.find((item) => item.id === id);
-    if (!producto) return;
-
-    if (action === "edit") {
-        openProductModal(producto);
-        return;
-    }
-
-    if (action === "delete") {
-        const ok = confirm(`Eliminar "${producto.nombre}" del inventario?`);
-        if (!ok) return;
-        try {
-            window.InventoryApp.eliminarProducto(id);
-        } catch (error) {
-            console.error("[inventario] Error al eliminar", error);
-            return;
-        }
-        renderInventario();
-    }
-}
-
 function renderInventario() {
     const productos = window.InventoryApp
         .cargarProductos()
@@ -168,10 +156,10 @@ function renderInventario() {
                     <td><span class="estado ${estado.clase}"><i class="${estado.icono}"></i>${estado.texto}</span></td>
                     <td>
                         <div class="acciones">
-                            <button class="btn small ghost" data-action="edit" data-id="${producto.id}">
+                            <button class="btn small ghost btn-editar" data-id="${producto.id}">
                                 <i class="fa-solid fa-pen"></i> Editar
                             </button>
-                            <button class="btn small danger" data-action="delete" data-id="${producto.id}">
+                            <button class="btn small danger btn-borrar" data-id="${producto.id}">
                                 <i class="fa-solid fa-trash"></i> Eliminar
                             </button>
                         </div>
@@ -209,6 +197,29 @@ function closeProductModal() {
     productModal.classList.remove("show");
     productModal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+}
+
+function editarProducto(id) {
+    const productos = window.InventoryApp.cargarProductos();
+    const producto = productos.find((item) => item.id === id);
+    if (!producto) return;
+    openProductModal(producto);
+}
+
+function borrarProducto(id) {
+    const productos = window.InventoryApp.cargarProductos();
+    const producto = productos.find((item) => item.id === id);
+    if (!producto) return;
+
+    const ok = confirm(`Eliminar "${producto.nombre}" del inventario?`);
+    if (!ok) return;
+    try {
+        window.InventoryApp.eliminarProducto(id);
+    } catch (error) {
+        console.error("[inventario] Error al eliminar", error);
+        return;
+    }
+    renderInventario();
 }
 
 function generarCodigoProducto() {
