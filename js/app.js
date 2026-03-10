@@ -13,10 +13,12 @@ const productosIniciales = [
     { id: 4, nombre: "Llave francesa 10", categoria: "Herramientas", codigo: "LLA-010", precio: 8700, stock: 4 }
 ];
 
-if (!localStorage.getItem(STORAGE_PRODUCTOS)) {
+console.log("[app] Script cargado");
+
+if (!safeGetItem(STORAGE_PRODUCTOS)) {
     guardarProductos(productosIniciales);
 }
-if (!localStorage.getItem(STORAGE_VENTAS)) {
+if (!safeGetItem(STORAGE_VENTAS)) {
     guardarVentas([]);
 }
 
@@ -39,12 +41,17 @@ window.InventoryApp = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-    setFechaActual();
-    iniciarDashboardSiExiste();
+    try {
+        console.log("[app] DOM listo");
+        setFechaActual();
+        iniciarDashboardSiExiste();
+    } catch (error) {
+        console.error("[app] Error inicializando", error);
+    }
 });
 
 function cargarProductos() {
-    const raw = localStorage.getItem(STORAGE_PRODUCTOS);
+    const raw = safeGetItem(STORAGE_PRODUCTOS);
     try {
         const list = JSON.parse(raw);
         return Array.isArray(list) ? list : [];
@@ -54,11 +61,11 @@ function cargarProductos() {
 }
 
 function guardarProductos(productos) {
-    localStorage.setItem(STORAGE_PRODUCTOS, JSON.stringify(productos));
+    safeSetItem(STORAGE_PRODUCTOS, JSON.stringify(productos));
 }
 
 function cargarVentas() {
-    const raw = localStorage.getItem(STORAGE_VENTAS);
+    const raw = safeGetItem(STORAGE_VENTAS);
     try {
         const list = JSON.parse(raw);
         if (!Array.isArray(list)) return [];
@@ -69,7 +76,7 @@ function cargarVentas() {
 }
 
 function guardarVentas(ventas) {
-    localStorage.setItem(STORAGE_VENTAS, JSON.stringify(ventas));
+    safeSetItem(STORAGE_VENTAS, JSON.stringify(ventas));
 }
 
 function obtenerEstadoStock(producto) {
@@ -265,6 +272,23 @@ function iniciarDashboardSiExiste() {
             `;
         })
         .join("");
+}
+
+function safeGetItem(key) {
+    try {
+        return localStorage.getItem(key);
+    } catch (error) {
+        console.error(`[app] No se pudo leer localStorage: ${key}`, error);
+        return null;
+    }
+}
+
+function safeSetItem(key, value) {
+    try {
+        localStorage.setItem(key, value);
+    } catch (error) {
+        console.error(`[app] No se pudo guardar localStorage: ${key}`, error);
+    }
 }
 
 function formatoMoneda(valor) {
