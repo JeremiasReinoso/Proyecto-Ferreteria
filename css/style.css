@@ -424,6 +424,45 @@ input[type="number"] {
     margin-top: 8px;
 }
 
+.ticket-modal {
+    width: min(420px, 96vw);
+}
+
+.ticket-content {
+    background: #ffffff;
+    color: #111827;
+    border: 1px dashed #c7cbd3;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+}
+
+.ticket-content h3 {
+    margin: 0 0 6px;
+    font-size: 1.1rem;
+}
+
+.ticket-content small {
+    color: #6b7280;
+}
+
+.ticket-line {
+    margin: 14px 0;
+    border-bottom: 1px dashed #d1d5db;
+}
+
+.ticket-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.ticket-total {
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
 .toast-container {
     position: fixed;
     top: 20px;
@@ -541,4 +580,25 @@ input[type="number"] {
         justify-content: center;
     }
 
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .ticket-print,
+    .ticket-print * {
+        visibility: visible;
+    }
+    .ticket-modal {
+        box-shadow: none;
+        border: 0;
+    }
+    .ticket-content {
+        box-shadow: none;
+    }
+    #printTicketBtn,
+    #closeTicketBtn {
+        display: none !important;
+    }
 }
