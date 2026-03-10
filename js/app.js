@@ -15,6 +15,14 @@ const productosIniciales = [
 
 console.log("[app] Script cargado");
 
+window.addEventListener("error", (event) => {
+    console.error("[app] Error global", event.error || event.message);
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+    console.error("[app] Promesa rechazada", event.reason);
+});
+
 if (!safeGetItem(STORAGE_PRODUCTOS)) {
     guardarProductos(productosIniciales);
 }
