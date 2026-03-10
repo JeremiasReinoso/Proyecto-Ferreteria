@@ -153,6 +153,9 @@ function renderInventario() {
 
     inventarioBody.innerHTML = productos
         .map((producto) => {
+            if (!producto.id) {
+                console.warn("[inventario] Producto sin id", producto);
+            }
             const estado = window.InventoryApp.obtenerEstadoStock(producto);
             return `
                 <tr>
