@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Actualiza la vista si se registran ventas desde otra pestana.
+// Actualiza la vista si se registran ventas desde otra pestaña.
 window.addEventListener("storage", (event) => {
     if (event.key === "ferreteria_ventas_v2") {
         inicializarFiltros();
@@ -137,7 +137,7 @@ function renderGraficoMensual(anioSeleccionado, mesSeleccionado) {
     const dataPorMes = new Array(12).fill(0);
     const ventas = window.InventoryApp.cargarVentas();
 
-    // Suma ingresos por cada mes del anio seleccionado.
+    // Suma ingresos por cada mes del año seleccionado.
     ventas.forEach((venta) => {
         const fecha = new Date(venta.timestamp);
         if (fecha.getFullYear() !== anioSeleccionado) return;
