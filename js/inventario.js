@@ -14,6 +14,7 @@ const modalCategoria = document.querySelector("#modalCategoria");
 const modalPrecio = document.querySelector("#modalPrecio");
 const modalStock = document.querySelector("#modalStock");
 const modalCodigo = document.querySelector("#modalCodigo");
+const generateCodeBtn = document.querySelector("#generateCodeBtn");
 
 let filtro = "";
 
@@ -26,6 +27,10 @@ searchInput.addEventListener("input", () => {
 
 btnNuevo.addEventListener("click", () => {
     openProductModal();
+});
+
+generateCodeBtn.addEventListener("click", () => {
+    modalCodigo.value = generarCodigoProducto();
 });
 
 closeModalBtn.addEventListener("click", closeProductModal);
@@ -169,6 +174,21 @@ function closeProductModal() {
     productModal.classList.remove("show");
     productModal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+}
+
+function generarCodigoProducto() {
+    const productos = window.InventoryApp.cargarProductos();
+
+    // Busca codigos existentes con formato PROD-000X para calcular el siguiente correlativo.
+    const ultimoNumero = productos.reduce((maximo, producto) => {
+        const match = String(producto.codigo || "").match(/^PROD-(\d{4})$/);
+        if (!match) return maximo;
+        return Math.max(maximo, Number(match[1]));
+    }, 0);
+
+    const siguienteNumero = ultimoNumero + 1;
+    const codigo = `PROD-${String(siguienteNumero).padStart(4, "0")}`;
+    return codigo;
 }
 
 function escapeHtml(value) {
