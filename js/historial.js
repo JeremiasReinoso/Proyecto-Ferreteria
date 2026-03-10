@@ -14,12 +14,25 @@ const meses = [
 let chartInstance = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-    inicializarFiltros();
-    renderHistorial();
-});
+    try {
+        if (!historialBody || !mesSelect || !anioSelect) {
+            console.warn("[historial] Faltan elementos en el DOM.");
+            return;
+        }
+        if (typeof Chart === "undefined") {
+            console.warn("[historial] Chart.js no esta disponible.");
+            return;
+        }
+        console.log("[historial] DOM listo");
+        inicializarFiltros();
+        renderHistorial();
 
-mesSelect.addEventListener("change", renderHistorial);
-anioSelect.addEventListener("change", renderHistorial);
+        mesSelect.addEventListener("change", renderHistorial);
+        anioSelect.addEventListener("change", renderHistorial);
+    } catch (error) {
+        console.error("[historial] Error inicializando", error);
+    }
+});
 
 // Actualiza la vista si se registran ventas desde otra pestana.
 window.addEventListener("storage", (event) => {
@@ -40,7 +53,7 @@ function inicializarFiltros() {
     const anioActual = hoy.getFullYear();
     const mesActual = hoy.getMonth();
 
-    const anios = Array.from(new Set(ventas.map((venta) => new Date(venta.fecha).getFullYear())));
+    const anios = Array.from(new Set(ventas.map((venta) => new Date(venta.timestamp).getFullYear())));
     if (!anios.includes(anioActual)) anios.push(anioActual);
     anios.sort((a, b) => b - a);
 
@@ -122,7 +135,7 @@ function renderGraficoMensual(anioSeleccionado, mesSeleccionado) {
 
     // Suma ingresos por cada mes del anio seleccionado.
     ventas.forEach((venta) => {
-        const fecha = new Date(venta.fecha);
+        const fecha = new Date(venta.timestamp);
         if (fecha.getFullYear() !== anioSeleccionado) return;
         const mes = fecha.getMonth();
         dataPorMes[mes] += venta.total ?? (venta.cantidad * venta.precio);
