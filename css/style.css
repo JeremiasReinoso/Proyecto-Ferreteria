@@ -310,6 +310,12 @@ tbody tr:hover {
     align-items: end;
 }
 
+.venta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 label {
     display: grid;
     gap: 8px;
