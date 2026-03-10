@@ -19,6 +19,10 @@ document.addEventListener("DOMContentLoaded", () => {
             console.warn("[historial] Faltan elementos en el DOM.");
             return;
         }
+        if (!window.InventoryApp) {
+            console.error("[historial] InventoryApp no esta disponible.");
+            return;
+        }
         if (typeof Chart === "undefined") {
             console.warn("[historial] Chart.js no esta disponible.");
             return;
