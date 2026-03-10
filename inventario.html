@@ -48,8 +48,10 @@
                         <thead>
                             <tr>
                                 <th>Nombre</th>
+                                <th>Categoria</th>
+                                <th>Codigo</th>
                                 <th>Precio</th>
-                                <th>Cantidad</th>
+                                <th>Stock</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
@@ -71,11 +73,16 @@
             </div>
 
             <form id="productForm" class="modal-form">
-                <input id="modalOriginalNombre" type="hidden">
+                <input id="modalProductId" type="hidden">
 
                 <label>
                     Nombre del producto
                     <input id="modalNombre" type="text" required>
+                </label>
+
+                <label>
+                    Categoria
+                    <input id="modalCategoria" type="text" required>
                 </label>
 
                 <label>
@@ -85,7 +92,18 @@
 
                 <label>
                     Cantidad en stock
-                    <input id="modalCantidad" type="number" min="0" required>
+                    <input id="modalStock" type="number" min="0" required>
+                </label>
+
+                <label>
+                    Codigo del producto (opcional)
+                    <div class="code-field">
+                        <input id="modalCodigo" type="text" maxlength="30">
+                        <button id="generateCodeBtn" type="button" class="btn secondary">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            Generar codigo automatico
+                        </button>
+                    </div>
                 </label>
 
                 <div class="modal-actions">
