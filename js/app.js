@@ -62,14 +62,19 @@ function cargarProductos() {
     const raw = safeGetItem(STORAGE_PRODUCTOS);
     try {
         const list = JSON.parse(raw);
-        return Array.isArray(list) ? list : [];
+        if (!Array.isArray(list)) return [];
+        const normalizados = list.map(normalizarProducto).filter(Boolean);
+        if (normalizados.length !== list.length || normalizados.some((p, i) => p.id !== list[i]?.id)) {
+            guardarProductos(normalizados);
+        }
+        return normalizados;
     } catch {
         return [];
     }
 }
 
 function guardarProductos(productos) {
-    safeSetItem(STORAGE_PRODUCTOS, JSON.stringify(productos));
+    safeSetItem(STORAGE_PRODUCTOS, JSON.stringify(productos.map(normalizarProducto).filter(Boolean)));
 }
 
 function cargarVentas() {
@@ -125,16 +130,16 @@ function eliminarProducto(id) {
 
 function crearProducto(data) {
     const productos = cargarProductos();
-    const nextId = productos.length ? Math.max(...productos.map((p) => p.id)) + 1 : 1;
+    const nextId = productos.length ? Math.max(...productos.map((p) => p.id)) + 1 : Date.now();
 
-    const nuevo = {
+    const nuevo = normalizarProducto({
         id: nextId,
-        nombre: data.nombre.trim(),
-        categoria: (data.categoria || "General").trim(),
-        codigo: (data.codigo || "").trim(),
-        precio: Number(data.precio),
-        stock: Number(data.stock)
-    };
+        nombre: data.nombre,
+        categoria: data.categoria,
+        codigo: data.codigo,
+        precio: data.precio,
+        stock: data.stock
+    });
 
     productos.push(nuevo);
     guardarProductos(productos);
@@ -338,6 +343,29 @@ function normalizarVenta(venta) {
         total,
         fecha,
         timestamp
+    };
+}
+
+function normalizarProducto(producto) {
+    if (!producto || typeof producto !== "object") return null;
+    const id = Number(producto.id || Date.now());
+    const nombre = String(producto.nombre || "").trim();
+    const categoria = String(producto.categoria || "General").trim();
+    const codigo = String(producto.codigo || "").trim();
+    const precio = Number(producto.precio);
+    const stock = Number(producto.stock);
+
+    if (!nombre || !Number.isFinite(precio) || precio <= 0 || !Number.isInteger(stock) || stock < 0) {
+        return null;
+    }
+
+    return {
+        id,
+        nombre,
+        categoria,
+        codigo,
+        precio,
+        stock
     };
 }
 
