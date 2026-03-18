@@ -1,6 +1,7 @@
 const inventarioBody = document.querySelector("#inventarioBody");
 const searchInput = document.querySelector("#searchInput");
 const btnNuevo = document.querySelector("#btnNuevo");
+const btnExportar = document.querySelector("#exportarProductos");
 
 const productModal = document.querySelector("#productModal");
 const closeModalBtn = document.querySelector("#closeModalBtn");
@@ -39,6 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
         btnNuevo.addEventListener("click", () => {
             openProductModal();
         });
+
+        if (btnExportar) {
+            btnExportar.addEventListener("click", exportarProductos);
+        }
 
         if (generateCodeBtn) {
             generateCodeBtn.addEventListener("click", () => {
@@ -248,6 +253,44 @@ function generarCodigoProducto() {
     return codigo;
 }
 
+function exportarProductos() {
+    let productos = [];
+
+    try {
+        const productosLocalData = JSON.parse(localStorage.getItem("productos"));
+        if (Array.isArray(productosLocalData)) {
+            productos = productosLocalData;
+        }
+    } catch (error) {
+        console.warn("[inventario] No se pudo parsear localStorage('productos'), se usará InventoryApp:", error);
+    }
+
+    if (productos.length === 0 && window.InventoryApp && typeof window.InventoryApp.cargarProductos === "function") {
+        productos = window.InventoryApp.cargarProductos();
+    }
+
+    const dataStr = JSON.stringify(productos, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "productos.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+
+    if (productos.length === 0) {
+        alert("No hay productos para exportar. Se generó un JSON vacío.");
+    } else {
+        alert(`Se exportaron ${productos.length} productos a productos.json`);
+    }
+
+    console.log(`[inventario] exportarProductos: ${productos.length} productos`);
+}
+
 function escapeHtml(value) {
     return String(value)
         .replaceAll("&", "&amp;")
@@ -256,3 +299,4 @@ function escapeHtml(value) {
         .replaceAll("\"", "&quot;")
         .replaceAll("'", "&#39;");
 }
+
