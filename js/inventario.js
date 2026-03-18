@@ -1,4 +1,4 @@
-const inventarioBody = document.querySelector("#inventarioBody");
+﻿const inventarioBody = document.querySelector("#inventarioBody");
 const searchInput = document.querySelector("#searchInput");
 const btnNuevo = document.querySelector("#btnNuevo");
 const btnExportar = document.querySelector("#exportarProductos");
@@ -253,7 +253,7 @@ function generarCodigoProducto() {
     return codigo;
 }
 
-function exportarProductos() {
+async function exportarProductos() {
     let productos = [];
 
     try {
@@ -262,11 +262,36 @@ function exportarProductos() {
             productos = productosLocalData;
         }
     } catch (error) {
-        console.warn("[inventario] No se pudo parsear localStorage('productos'), se usar� InventoryApp:", error);
+        console.warn("[inventario] No se pudo parsear localStorage('productos'), se usará InventoryApp:", error);
     }
 
     if (productos.length === 0 && window.InventoryApp && typeof window.InventoryApp.cargarProductos === "function") {
         productos = window.InventoryApp.cargarProductos();
+    }
+
+    try {
+        const response = await fetch("/api/products/export", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ productos })
+        });
+
+        if (!response.ok) {
+            throw new Error("Respuesta no OK al exportar en el servidor.");
+        }
+
+        const result = await response.json();
+        if (productos.length === 0) {
+            alert("No hay productos para exportar. Se generó un JSON vacío.");
+        } else {
+            alert(`Se guardaron ${result.count ?? productos.length} productos en productos.json`);
+        }
+        console.log(`[inventario] exportarProductos: ${productos.length} productos (server)`);
+        return;
+    } catch (error) {
+        console.warn("[inventario] No se pudo guardar en servidor, se descargará el archivo:", error);
     }
 
     const dataStr = JSON.stringify(productos, null, 2);
@@ -283,12 +308,12 @@ function exportarProductos() {
     URL.revokeObjectURL(url);
 
     if (productos.length === 0) {
-        alert("No hay productos para exportar. Se gener� un JSON vac�o.");
+        alert("No hay productos para exportar. Se generó un JSON vacío.");
     } else {
         alert(`Se exportaron ${productos.length} productos a productos.json`);
     }
 
-    console.log(`[inventario] exportarProductos: ${productos.length} productos`);
+    console.log(`[inventario] exportarProductos: ${productos.length} productos (download)`);
 }
 
 function escapeHtml(value) {
