@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs/promises");
 const { randomUUID } = require("crypto");
 const express = require("express");
 const nodemailer = require("nodemailer");
@@ -159,6 +160,29 @@ app.post("/api/products/:id/sell", async (req, res) => {
         const updated = await get("SELECT * FROM products WHERE id = ?", [req.params.id]);
         await triggerStockAlerts(updated);
         res.json(normalizeProduct(updated));
+    } catch (error) {
+        respondError(res, error);
+    }
+});
+
+app.post("/api/products/export", async (req, res) => {
+    try {
+        const body = req.body;
+        const productos = Array.isArray(body)
+            ? body
+            : Array.isArray(body?.productos)
+                ? body.productos
+                : null;
+
+        if (!productos) {
+            res.status(400).json({ error: "Se esperaba un array de productos." });
+            return;
+        }
+
+        const filePath = path.join(__dirname, "productos.json");
+        await fs.writeFile(filePath, JSON.stringify(productos, null, 2), "utf8");
+
+        res.json({ ok: true, count: productos.length, file: "/productos.json" });
     } catch (error) {
         respondError(res, error);
     }
