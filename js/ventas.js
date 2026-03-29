@@ -10,6 +10,7 @@ const ticketContent = document.querySelector("#ticketContent");
 const closeTicketBtn = document.querySelector("#closeTicketBtn");
 const printTicketBtn = document.querySelector("#printTicketBtn");
 const printMomentBtn = document.querySelector("#printMomentBtn");
+const finalizarVentaBtn = document.querySelector("#finalizarVentaBtn");
 const ventasDelMomento = [];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -38,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (printTicketBtn) printTicketBtn.addEventListener("click", () => window.print());
         if (printMomentBtn) printMomentBtn.addEventListener("click", imprimirVentasDelMomento);
+        if (finalizarVentaBtn) finalizarVentaBtn.addEventListener("click", finalizarVentaActual);
     } catch (error) {
         console.error("[ventas] Error inicializando", error);
     }
@@ -57,11 +59,11 @@ function registrarVenta() {
     }
 
     try {
-        const venta = window.InventoryApp.registrarVenta(productoId, cantidad);
+        const venta = window.InventoryApp.registrarVentaActual(productoId, cantidad);
         ventaFeedback.textContent = `Venta registrada: ${venta.cantidad} x ${venta.producto} por ${window.InventoryApp.formatoMoneda(venta.total)}.`;
         ventaForm.reset();
         ventaCantidad.value = "1";
-        ventasDelMomento.unshift(venta);
+        ventasDelMomento.push(venta);
         cargarOpcionesProductos();
         renderVentas();
         renderCards();
@@ -138,14 +140,13 @@ function handleEnterSubmit(event) {
 
 function prepararVentasDelMomento() {
     ventasDelMomento.length = 0;
-    const ventasHoy = window.InventoryApp.cargarVentas()
-        .filter((venta) => Date.now() - venta.timestamp < 86400000);
-    ventasDelMomento.push(...ventasHoy);
+    const ventasActuales = window.InventoryApp.cargarVentaActual();
+    ventasDelMomento.push(...ventasActuales);
 }
 
 function imprimirVentasDelMomento() {
     if (ventasDelMomento.length === 0) {
-        ventaFeedback.textContent = "No hay ventas del momento para imprimir.";
+        ventaFeedback.textContent = "No hay venta actual para imprimir.";
         return;
     }
     if (!ticketModal || !ticketContent) {
@@ -167,7 +168,7 @@ function imprimirVentasDelMomento() {
 
     ticketContent.innerHTML = `
         <div class="ticket-print">
-            <h3>Ventas del momento</h3>
+            <h3>Venta actual</h3>
             <small>${window.InventoryApp.formatoFechaHora(new Date().toISOString())}</small>
             <div class="ticket-line"></div>
             ${filas}
@@ -186,6 +187,21 @@ function imprimirVentasDelMomento() {
     requestAnimationFrame(() => {
         window.print();
     });
+}
+
+function finalizarVentaActual() {
+    if (ventasDelMomento.length === 0) {
+        ventaFeedback.textContent = "No hay venta actual para finalizar.";
+        return;
+    }
+
+    const resultado = window.InventoryApp.finalizarVentaActual();
+    ventasDelMomento.length = 0;
+    ventaForm.reset();
+    ventaCantidad.value = "1";
+    renderVentas();
+    renderCards();
+    ventaFeedback.textContent = `Venta finalizada: ${resultado.ventasGuardadas} item(s) guardados.`;
 }
 
 function abrirTicketVenta(venta) {
