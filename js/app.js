@@ -1,5 +1,7 @@
 const STORAGE_PRODUCTOS = "ferreteria_productos_v2";
 const STORAGE_VENTAS = "ferreteria_ventas_v2";
+const STORAGE_VENTA_ACTUAL = "ventaActual";
+const STORAGE_VENTAS_TOTALES = "ventasTotales";
 const LIMITE_STOCK_BAJO = 10;
 const TOAST_DURATION_MS = 4000;
 const TOAST_COOLDOWN_MS = 12000;
@@ -29,6 +31,12 @@ if (!safeGetItem(STORAGE_PRODUCTOS)) {
 if (!safeGetItem(STORAGE_VENTAS)) {
     guardarVentas([]);
 }
+if (!safeGetItem(STORAGE_VENTA_ACTUAL)) {
+    safeSetItem(STORAGE_VENTA_ACTUAL, JSON.stringify([]));
+}
+if (!safeGetItem(STORAGE_VENTAS_TOTALES)) {
+    safeSetItem(STORAGE_VENTAS_TOTALES, JSON.stringify([]));
+}
 
 window.InventoryApp = {
     LIMITE_STOCK_BAJO,
@@ -36,6 +44,10 @@ window.InventoryApp = {
     guardarProductos,
     cargarVentas,
     guardarVentas,
+    cargarVentaActual,
+    guardarVentaActual,
+    registrarVentaActual,
+    finalizarVentaActual,
     obtenerEstadoStock,
     actualizarProducto,
     eliminarProducto,
@@ -90,6 +102,38 @@ function cargarVentas() {
 
 function guardarVentas(ventas) {
     safeSetItem(STORAGE_VENTAS, JSON.stringify(ventas));
+}
+
+function cargarVentaActual() {
+    const raw = safeGetItem(STORAGE_VENTA_ACTUAL);
+    try {
+        const list = JSON.parse(raw);
+        if (!Array.isArray(list)) return [];
+        return list.map(normalizarVenta).filter(Boolean);
+    } catch (error) {
+        console.warn("[ventas] No se pudo parsear localStorage('ventaActual')", error);
+        return [];
+    }
+}
+
+function guardarVentaActual(ventaActual) {
+    safeSetItem(STORAGE_VENTA_ACTUAL, JSON.stringify(ventaActual));
+}
+
+function cargarVentasTotales() {
+    const raw = safeGetItem(STORAGE_VENTAS_TOTALES);
+    try {
+        const list = JSON.parse(raw);
+        if (!Array.isArray(list)) return [];
+        return list;
+    } catch (error) {
+        console.warn("[ventas] No se pudo parsear localStorage('ventasTotales')", error);
+        return [];
+    }
+}
+
+function guardarVentasTotales(historial) {
+    safeSetItem(STORAGE_VENTAS_TOTALES, JSON.stringify(historial));
 }
 
 function obtenerEstadoStock(producto) {
@@ -147,6 +191,65 @@ function crearProducto(data) {
         mostrarNotificacionStock(nuevo);
     }
     return nuevo;
+}
+
+function registrarVentaActual(productoId, cantidad) {
+    const productos = cargarProductos();
+    const ventaActual = cargarVentaActual();
+    const producto = productos.find((item) => item.id === Number(productoId));
+
+    if (!producto) throw new Error("Producto no encontrado.");
+    if (!Number.isInteger(cantidad) || cantidad <= 0) {
+        throw new Error("La cantidad debe ser mayor a 0.");
+    }
+    if (producto.stock < cantidad) {
+        throw new Error("No hay stock suficiente.");
+    }
+
+    producto.stock -= cantidad;
+    if (producto.stock <= LIMITE_STOCK_BAJO) {
+        enviarAlertaStock(producto);
+    }
+
+    const timestamp = Date.now();
+    const fechaIso = new Date(timestamp).toISOString();
+    const venta = {
+        id: timestamp,
+        producto: producto.nombre,
+        cantidad,
+        precio: producto.precio,
+        total: producto.precio * cantidad,
+        fecha: fechaIso.slice(0, 10),
+        timestamp
+    };
+
+    ventaActual.push(venta);
+    guardarProductos(productos);
+    guardarVentaActual(ventaActual);
+    return venta;
+}
+
+function finalizarVentaActual() {
+    const ventaActual = cargarVentaActual();
+    if (ventaActual.length === 0) {
+        return { ventasGuardadas: 0 };
+    }
+
+    const historial = cargarVentasTotales();
+    historial.push(ventaActual);
+    guardarVentasTotales(historial);
+
+    const ventas = cargarVentas();
+    const ventasOrdenadas = ventaActual
+        .slice()
+        .sort((a, b) => b.timestamp - a.timestamp);
+    ventas.unshift(...ventasOrdenadas);
+    guardarVentas(ventas);
+
+    localStorage.removeItem(STORAGE_VENTA_ACTUAL);
+    // Permite refrescar modulos abiertos en la misma pestana.
+    window.dispatchEvent(new CustomEvent("ventasActualizadas", { detail: ventasOrdenadas }));
+    return { ventasGuardadas: ventaActual.length };
 }
 
 function registrarVenta(productoId, cantidad) {
