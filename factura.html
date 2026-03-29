@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Factura - Ferretería El Vecino</title>
+  <link rel="stylesheet" href="factura.css" />
+</head>
+<body>
+  <main class="ticket" aria-label="Factura tipo ticket">
+    <header class="ticket__header">
+      <h1 class="ticket__title">Ferretería El Vecino</h1>
+      <p class="ticket__legal">Documento no válido como factura</p>
+    </header>
+
+    <section class="ticket__info" aria-label="Datos del comprobante">
+      <div class="info__row">
+        <span class="info__label">Fecha</span>
+        <span id="fecha" class="info__value">--/--/----</span>
+      </div>
+      <div class="info__row">
+        <span class="info__label">Hora</span>
+        <span id="hora" class="info__value">--:--</span>
+      </div>
+      <div class="info__row">
+        <span class="info__label">Comprobante N°</span>
+        <span id="comprobante" class="info__value">--</span>
+      </div>
+    </section>
+
+    <section class="ticket__items" aria-label="Detalle de productos">
+      <table class="items__table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th class="col-center">Cant.</th>
+            <th class="col-right">Total</th>
+          </tr>
+        </thead>
+        <tbody id="items">
+          <!-- Productos renderizados por JS -->
+        </tbody>
+      </table>
+    </section>
+
+    <section class="ticket__total" aria-label="Total general">
+      <div class="total__row">
+        <span>Total</span>
+        <span id="total" class="total__value">$0</span>
+      </div>
+    </section>
+
+    <button id="btn-imprimir" class="btn-print" type="button">Imprimir</button>
+  </main>
+
+  <script src="factura.js"></script>
+</body>
+</html>
